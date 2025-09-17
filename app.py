@@ -182,7 +182,7 @@ def generate_demo_data():
     # Generate other parameters
     df = pd.DataFrame({
         'timestamp': timestamps,
-        'cell_voltage': voltage,
+        'Voltage @1# Stack': voltage,
         'stack_current': current,
         'electrolyte_temperature': temp,
         'electrolyte_concentration': 30 + np.random.normal(0, 1, n_points),
@@ -207,7 +207,7 @@ def generate_demo_data():
     
     # Add failure indicators based on conditions
     df['failure_risk'] = 0
-    df.loc[df['cell_voltage'] > 1.95, 'failure_risk'] = 1
+    df.loc[df['Voltage @1# Stack'] > 1.95, 'failure_risk'] = 1
     df.loc[df['o2_in_h2'] > 200, 'failure_risk'] = 1
     df.loc[df['hours_since_maintenance'] > 1800, 'failure_risk'] = 1
     
@@ -219,7 +219,7 @@ def calculate_risk_metrics(df):
     risk_scores = pd.DataFrame()
     
     # Voltage degradation risk
-    voltage_risk = np.clip((df['cell_voltage'] - 1.8) / 0.2 * 100, 0, 100)
+    voltage_risk = np.clip((df['Voltage @1# Stack'] - 1.8) / 0.2 * 100, 0, 100)
     
     # Gas crossover risk
     crossover_risk = np.clip(df['o2_in_h2'] / 500 * 100, 0, 100)
@@ -257,11 +257,11 @@ def generate_predictions(df, horizon):
     )
     
     # Extract trend from historical data
-    recent_voltage = df['cell_voltage'].tail(168).values
+    recent_voltage = df['Voltage @1# Stack'].tail(168).values
     trend = np.polyfit(range(len(recent_voltage)), recent_voltage, 1)[0]
     
     # Generate predictions with uncertainty
-    base_prediction = df['cell_voltage'].iloc[-1]
+    base_prediction = df['Voltage @1# Stack'].iloc[-1]
     predictions = []
     uncertainties = []
     
@@ -314,8 +314,8 @@ if st.session_state.data_loaded or uploaded_file:
         col1, col2, col3, col4, col5 = st.columns(5)
         
         with col1:
-            current_voltage = df['cell_voltage'].iloc[-1]
-            voltage_delta = df['cell_voltage'].iloc[-1] - df['cell_voltage'].iloc[-24]
+            current_voltage = df['Voltage @1# Stack'].iloc[-1]
+            voltage_delta = df['Voltage @1# Stack'].iloc[-1] - df['Voltage @1# Stack'].iloc[-24]
             st.metric(
                 "Cell Voltage",
                 f"{current_voltage:.3f} V",
@@ -371,7 +371,7 @@ if st.session_state.data_loaded or uploaded_file:
             fig = go.Figure()
             fig.add_trace(go.Scatter(
                 x=df['timestamp'].tail(168),
-                y=df['cell_voltage'].tail(168),
+                y=df['Voltage @1# Stack'].tail(168),
                 mode='lines',
                 name='Cell Voltage',
                 line=dict(color='blue', width=2)
@@ -525,7 +525,7 @@ if st.session_state.data_loaded or uploaded_file:
             # Historical data
             fig.add_trace(go.Scatter(
                 x=df['timestamp'].tail(168),
-                y=df['cell_voltage'].tail(168),
+                y=df['Voltage @1# Stack'].tail(168),
                 mode='lines',
                 name='Historical',
                 line=dict(color='blue', width=2)
@@ -713,7 +713,7 @@ if st.session_state.data_loaded or uploaded_file:
         risk_report = pd.DataFrame({
             'Risk Factor': ['Voltage Degradation', 'Gas Crossover', 'Thermal Stress', 'Maintenance Urgency'],
             'Current Value': [
-                f"{df['cell_voltage'].iloc[-1]:.3f} V",
+                f"{df['Voltage @1# Stack'].iloc[-1]:.3f} V",
                 f"{df['o2_in_h2'].iloc[-1]:.0f} ppm",
                 f"{df['electrolyte_temperature'].iloc[-1]:.1f} °C",
                 f"{df['hours_since_maintenance'].iloc[-1]:.0f} hours"
@@ -790,7 +790,7 @@ if st.session_state.data_loaded or uploaded_file:
         st.markdown("#### 🤖 AI-Powered Maintenance Recommendations")
         
         # Determine maintenance urgency
-        if current_overall_risk > 75 or df['cell_voltage'].iloc[-1] > 1.95:
+        if current_overall_risk > 75 or df['Voltage @1# Stack'].iloc[-1] > 1.95:
             urgency = "IMMEDIATE"
             urgency_color = "red"
             urgency_icon = "🚨"
